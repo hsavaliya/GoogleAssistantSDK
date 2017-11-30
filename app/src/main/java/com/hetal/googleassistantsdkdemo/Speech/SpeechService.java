@@ -62,15 +62,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import ai.api.AIServiceException;
-import ai.api.RequestExtras;
-import ai.api.android.AIConfiguration;
-import ai.api.android.AIDataService;
-import ai.api.model.AIContext;
-import ai.api.model.AIError;
-import ai.api.model.AIEvent;
-import ai.api.model.AIRequest;
-import ai.api.model.AIResponse;
 import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.ClientCall;
@@ -101,7 +92,6 @@ public class SpeechService extends Service {
         void onRequestStart();
 
         void onCredentioalSuccess();
-        void onDialogResponse(AIResponse intent);
 
     }
 
@@ -122,8 +112,7 @@ public class SpeechService extends Service {
 
     AudioTrack mAudioTrack;//audiotracker
 
-    boolean callApiAi=false;
-    private AIDataService aiDataService;
+
 
     private final StreamObserver<ConverseResponse> mResponseObserver
             =new StreamObserver<ConverseResponse>() {
@@ -143,19 +132,9 @@ public class SpeechService extends Service {
 
                     if (!spokenRequestText.isEmpty()) {
                         Log.i(TAG, "assistant request text: " + spokenRequestText);
-                        if(callApiAi){
-                            //send request to api.ai
-                            sendRequest(spokenRequestText);
-                        }
+
                         for (Listener listener : mListeners) {
                             listener.onSpeechRecognized(spokenRequestText, true);
-                        }
-                        if(spokenRequestText.toLowerCase().contains("hello flex") || spokenRequestText.toLowerCase().contains("talk to hello flex")){
-                            callApiAi=true;
-                            initService();
-                        }
-                        if(spokenRequestText.toLowerCase().contains("good bye")){
-                            callApiAi=false;
                         }
                     }
                     if (value.getResult().getVolumePercentage() != 0) {
@@ -507,73 +486,6 @@ public class SpeechService extends Service {
 
     }
 
-    private void initService() {
-        if(aiDataService==null) {
-            final AIConfiguration config = new AIConfiguration("389f0d50f67340f0ae029f5f9fc0eba9",
-                    AIConfiguration.SupportedLanguages.English,
-                    AIConfiguration.RecognitionEngine.System);
 
-
-            aiDataService = new AIDataService(this, config);
-        }
-    }
-    private void sendRequest(String queryString) {
-
-
-        if (TextUtils.isEmpty(queryString)) {
-            return;
-        }
-
-        final AsyncTask<String, Void, AIResponse> task = new AsyncTask<String, Void, AIResponse>() {
-
-            private AIError aiError;
-
-            @Override
-            protected AIResponse doInBackground(final String... params) {
-                final AIRequest request = new AIRequest();
-                String query = params[0];
-                String event = params[1];
-
-                if (!TextUtils.isEmpty(query))
-                    request.setQuery(query);
-                if (!TextUtils.isEmpty(event))
-                    request.setEvent(new AIEvent(event));
-                final String contextString = params[2];
-                RequestExtras requestExtras = null;
-                if (!TextUtils.isEmpty(contextString)) {
-                    final List<AIContext> contexts = Collections.singletonList(new AIContext(contextString));
-                    requestExtras = new RequestExtras(contexts, null);
-                }
-                AIResponse response1=null;
-                try {
-                    response1 = aiDataService.request(request, requestExtras);
-                } catch (final AIServiceException e) {
-                    aiError = new AIError(e);
-                    return null;
-                }
-                return response1;
-            }
-
-            @Override
-            protected void onPostExecute(final AIResponse response) {
-                if (response != null) {
-
-                        for (Listener listener : mListeners) {
-                            listener.onDialogResponse(response);
-                        }
-                    //onResult(response);
-                } else {
-                    onError(aiError);
-                }
-            }
-        };
-
-        task.execute(queryString, "", "");
-    }
-
-
-    private void onError(final AIError error) {
-
-    }
 
 }

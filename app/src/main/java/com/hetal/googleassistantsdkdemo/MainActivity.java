@@ -51,7 +51,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import ai.api.model.AIResponse;
 
 
 public class MainActivity extends AppCompatActivity implements MessageDialogFragment.Listener {
@@ -307,10 +306,6 @@ public class MainActivity extends AppCompatActivity implements MessageDialogFrag
 
                 }
 
-                @Override
-                public void onDialogResponse(AIResponse intent) {
-
-                }
             };
 
     private static class ViewHolder extends RecyclerView.ViewHolder {

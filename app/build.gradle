@@ -91,8 +91,5 @@ dependencies {
     compile 'javax.annotation:javax.annotation-api:1.2'
 
 
-    compile 'ai.api:sdk:2.0.7@aar'
-    compile 'ai.api:libai:1.6.11'
-    compile 'com.google.code.gson:gson:2.7'
 
 }
